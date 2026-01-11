@@ -4,18 +4,24 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /
 
-# Instalar dependencias de sistema y git
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# 1. Instalar GIT y herramientas del sistema (CRÍTICO)
+RUN apt-get update && apt-get install -y git wget && rm -rf /var/lib/apt/lists/*
 
-# Instalar librerías de Python básicas
+# 2. Clonar el repositorio de TripoSR manualmente
+RUN git clone https://github.com/VAST-AI-Research/TripoSR.git
+
+# 3. Instalar las dependencias de TripoSR
+WORKDIR /TripoSR
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade transformers
+
+# 4. Volver al directorio principal
+WORKDIR /
+
+# 5. Copiar tus requerimientos y tu handler
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Instalar TripoSR directamente desde GitHub (es la forma segura)
-RUN pip install git+https://github.com/VAST-AI-Research/TripoSR.git
-
-# Copiar tu cerebro
 COPY . .
 
-# Arrancar
+# 6. Arrancar
 CMD [ "python", "-u", "handler.py" ]
